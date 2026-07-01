@@ -10,7 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/archivo": "^5.2.8",
     "@fontsource/noto-sans-devanagari": "^5.2.8",
+    "@fontsource/outfit": "^5.2.8",
     "@fontsource/poppins": "^5.2.7",
     "@tailwindcss/vite": "^4.3.2",
     "react": "^19.2.7",
