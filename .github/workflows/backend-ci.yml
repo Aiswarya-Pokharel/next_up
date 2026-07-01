@@ -20,11 +20,6 @@ jobs:
       run:
         working-directory: backend
 
-    env:
-      SECRET_KEY: "ci-fake-secret-key-not-used-in-production"
-      DEBUG: "True"
-      DATABASE_URL: "sqlite:///test.db"
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
