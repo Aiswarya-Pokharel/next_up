@@ -8,8 +8,8 @@ export default function Slide() {
   const navigate = useNavigate();
 
   const leftbars = [
-    { title: "Home", path: "/home", icon: <FaHome /> },
-    { title: "Task List", path: "/tasks", icon: <FaTasks /> },
+    { title: "Dashboard", path: "/home", icon: <FaHome /> },
+    { title: "My Tasks", path: "/home/tasks", icon: <FaTasks /> },
   ];
 
   const handleLogout = async () => {

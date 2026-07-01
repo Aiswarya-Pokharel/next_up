@@ -29,14 +29,21 @@ class AccountSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
+    email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        account = authenticate(username=data['username'], password=data['password'])
+        from django.contrib.auth import authenticate
+        # authenticate using username field but pass email as username
+        try:
+            user = Account.objects.get(email=data['email'])
+        except Account.DoesNotExist:
+            raise serializers.ValidationError("Invalid email or password.")
+        
+        account = authenticate(username=user.username, password=data['password'])
         if not account:
-            raise serializers.ValidationError("Invalid username or password.")
+            raise serializers.ValidationError("Invalid email or password.")
+        
         data['account'] = account
         return data
