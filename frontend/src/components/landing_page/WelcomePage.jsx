@@ -1,5 +1,5 @@
 import { useState } from "react";
-// import Register from "../SignUp/Register";
+import Register from "../sign_up/Register";
 
 const lists = [
   "Smart priority scoring",
@@ -63,11 +63,11 @@ export default function WelcomePage() {
 
       <div className="w-full h-px bg-gray-300"></div>
 
-      <footer className="text-center text-xs text-content py-6">
+      <footer className="text-center text-xs text-content py-4">
         © 2026 NextUp
       </footer>
 
-      {/* {isLoginOpen && <Register onClose={() => setIsLoginOpen(false)} />} */}
+      {isLoginOpen && <Register onClose={() => setIsLoginOpen(false)} />}
     </div>
   );
 }
