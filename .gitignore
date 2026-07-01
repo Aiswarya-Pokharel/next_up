@@ -29,4 +29,5 @@ htmlcov/
 # ------------------ Build artifacts --------------------------------
 *.egg-info/
 dist/
-build/
+build/"__pycache__/" 
+"*.pyc" 
