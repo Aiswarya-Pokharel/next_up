@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaEye, FaEyeSlash } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const initialLoginState = { email: "", password: "" };
 const initialRegisterState = {
@@ -9,9 +10,13 @@ const initialRegisterState = {
 };
 
 export default function Register({ onClose, initialTab = "login" }) {
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(initialTab);
   const [loginData, setLoginData] = useState(initialLoginState);
   const [registerData, setRegisterData] = useState(initialRegisterState);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
 
   const handleLoginChange = (e) => {
     setLoginData({ ...loginData, [e.target.name]: e.target.value });
@@ -21,12 +26,55 @@ export default function Register({ onClose, initialTab = "login" }) {
     setRegisterData({ ...registerData, [e.target.name]: e.target.value });
   };
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
+    try {
+      const res = await fetch("http://localhost:8000/api/accounts/login/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: loginData.email,
+          password: loginData.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.status === 429) {
+        setError("Too many attempts. Please wait 1 minute.");
+        return;
+      }
+
+      if (res.ok) {
+        localStorage.setItem("access", data.access);
+        localStorage.setItem("refresh", data.refresh);
+        onClose();
+        navigate("/home");
+      } else {
+        setError("Invalid email or password.");
+      }
+    } catch (err) {
+      console.error("Network error:", err);
+    }
   };
 
-  const handleRegisterSubmit = (e) => {
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
+    try {
+      const res = await fetch("http://localhost:8000/api/accounts/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(registerData),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        switchTab("login"); // redirect to login after register
+      } else {
+        console.error("Register failed:", data);
+      }
+    } catch (err) {
+      console.error("Network error:", err);
+    }
   };
 
   const switchTab = (tab) => {
@@ -114,22 +162,35 @@ export default function Register({ onClose, initialTab = "login" }) {
               >
                 Password <span className="text-red-500">*</span>
               </label>
-              <input
-                id="login-password"
-                type="password"
-                name="password"
-                value={loginData.password}
-                onChange={handleLoginChange}
-                placeholder="At least 8 characters"
-                required
-                minLength={8}
-                className="border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-              />
+              <div className="flex items-center border border-border rounded-md px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-accent">
+                <input
+                  id="login-password"
+                  type={showLoginPassword ? "text" : "password"}
+                  name="password"
+                  value={loginData.password}
+                  onChange={handleLoginChange}
+                  placeholder="At least 8 characters"
+                  required
+                  minLength={8}
+                  className="flex-1 text-sm bg-transparent outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword((prev) => !prev)}
+                  className="text-gray-400 hover:text-gray-800 shrink-0"
+                >
+                  {showLoginPassword ? (
+                    <FaEyeSlash size={16} />
+                  ) : (
+                    <FaEye size={16} />
+                  )}
+                </button>
+              </div>
             </div>
 
             <button
               type="submit"
-              className="bg-accent hover:bg-accent-hover text-white font-sans font-semibold py-2 rounded-md transition-colors mt-2 cursor-pointer"
+              className="bg-logo hover:bg-logo-hover text-white font-poppins font-semibold py-2 rounded-md transition-colors mt-2 cursor-pointer"
             >
               Log In
             </button>
@@ -195,22 +256,35 @@ export default function Register({ onClose, initialTab = "login" }) {
               >
                 Password <span className="text-red-500">*</span>
               </label>
-              <input
-                id="register-password"
-                type="password"
-                name="password"
-                value={registerData.password}
-                onChange={handleRegisterChange}
-                placeholder="At least 8 characters"
-                required
-                minLength={8}
-                className="border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-              />
+              <div className="flex items-center border border-border rounded-md px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-accent">
+                <input
+                  id="register-password"
+                  type={showRegisterPassword ? "text" : "password"}
+                  name="password"
+                  value={registerData.password}
+                  onChange={handleRegisterChange}
+                  placeholder="At least 8 characters"
+                  required
+                  minLength={8}
+                  className="flex-1 text-sm bg-transparent outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowRegisterPassword((prev) => !prev)}
+                  className="text-gray-400 hover:text-gray-800 shrink-0"
+                >
+                  {showRegisterPassword ? (
+                    <FaEyeSlash size={16} />
+                  ) : (
+                    <FaEye size={16} />
+                  )}
+                </button>
+              </div>
             </div>
 
             <button
               type="submit"
-              className="bg-accent hover:bg-accent-hover text-white font-sans font-semibold py-2 rounded-md transition-colors mt-2 cursor-pointer"
+              className="bg-logo hover:bg-logo-hover text-white font-poppins font-semibold py-2 rounded-md transition-colors mt-2 cursor-pointer"
             >
               Sign Up
             </button>
@@ -227,6 +301,7 @@ export default function Register({ onClose, initialTab = "login" }) {
             </p>
           </form>
         )}
+        {error && <p className="text-red-500 text-xs text-center">{error}</p>}
       </div>
     </div>
   );

@@ -2,6 +2,9 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from django_ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
+from django_ratelimit.exceptions import Ratelimited
 from .models import Account
 from .serializers import AccountSerializer, LoginSerializer
 
@@ -28,6 +31,10 @@ class AccountDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Account.objects.filter(id=self.request.user.id)
 
 
+@method_decorator(
+    ratelimit(key='ip', rate='5/m', method='POST', block=True),
+    name='dispatch'
+)
 class AccountLoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -47,7 +54,14 @@ class AccountLoginView(APIView):
 
 class AccountLogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-
+    def handle_exception(self, exc):
+        if isinstance(exc, Ratelimited):
+            return Response(
+                {"error": "Too many login attempts. Please wait 1 minute and try again."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+        return super().handle_exception(exc)
+    
     def post(self, request):
         try:
             refresh_token = request.data.get("refresh")

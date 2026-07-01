@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Register from "../sign_up/Register";
+import Register from "./Register";
 
 const lists = [
   "Smart priority scoring",

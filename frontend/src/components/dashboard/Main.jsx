@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Cards from "./Cards";
 
 const choices = ["High", "Medium", "Low"];
 
@@ -15,6 +16,7 @@ export default function Main() {
 
   return (
     <div>
+      {/* --------------Add Section--------------- */}
       <section>
         <form onSubmit={handleSubmit} className="flex flex-col gap-2">
           <div className="flex gap-2">
@@ -65,6 +67,13 @@ export default function Main() {
             className="border border-border focus:outline-none focus:ring-1 focus:ring-accent rounded-md px-3 py-2 text-sm font-sans resize-none"
           />
         </form>
+      </section>
+
+      <section>
+        {/* --------------Cards--------------- */}
+        <div className="bg-secondary w-full p-6 overflow-y-auto">
+          <Cards />
+        </div>
       </section>
     </div>
   );
