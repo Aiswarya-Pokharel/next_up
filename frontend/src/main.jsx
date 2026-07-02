@@ -13,4 +13,9 @@ import "@fontsource/outfit/700.css";
 import "@fontsource/archivo/900.css";
 import "@fontsource/archivo/900-italic.css";
 
+const saved = localStorage.getItem("theme");
+if (saved === "dark") {
+  document.documentElement.classList.add("dark");
+}
+
 createRoot(document.getElementById("root")).render(<App />);

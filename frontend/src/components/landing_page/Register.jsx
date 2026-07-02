@@ -17,6 +17,7 @@ export default function Register({ onClose, initialTab = "login" }) {
   const [registerData, setRegisterData] = useState(initialRegisterState);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleLoginChange = (e) => {
     setLoginData({ ...loginData, [e.target.name]: e.target.value });
@@ -46,12 +47,17 @@ export default function Register({ onClose, initialTab = "login" }) {
       }
 
       if (res.ok) {
-        localStorage.setItem("access", data.access);
-        localStorage.setItem("refresh", data.refresh);
+        if (rememberMe) {
+          // persists after browser close
+          localStorage.setItem("access", data.access);
+          localStorage.setItem("refresh", data.refresh);
+        } else {
+          // clears when browser tab closes
+          sessionStorage.setItem("access", data.access);
+          sessionStorage.setItem("refresh", data.refresh);
+        }
         onClose();
         navigate("/home");
-      } else {
-        setError("Invalid email or password.");
       }
     } catch (err) {
       console.error("Network error:", err);
@@ -70,7 +76,7 @@ export default function Register({ onClose, initialTab = "login" }) {
       if (res.ok) {
         switchTab("login"); // redirect to login after register
       } else {
-        console.error("Register failed:", data);
+        setError(data.detail || "Registration failed.");
       }
     } catch (err) {
       console.error("Network error:", err);
@@ -133,9 +139,10 @@ export default function Register({ onClose, initialTab = "login" }) {
           </button>
         </div>
 
-        {/* --------------login form--------------- */}
+        {/* --------------------login form------------------------------- */}
         {activeTab === "login" && (
           <form onSubmit={handleLoginSubmit} className="flex flex-col gap-4">
+            {/*------------------------ Email ------------------------  */}
             <div className="flex flex-col gap-1">
               <label
                 htmlFor="login-email"
@@ -155,6 +162,7 @@ export default function Register({ onClose, initialTab = "login" }) {
               />
             </div>
 
+            {/*----------------------- Password -------------------------  */}
             <div className="flex flex-col gap-1">
               <label
                 htmlFor="login-password"
@@ -187,7 +195,24 @@ export default function Register({ onClose, initialTab = "login" }) {
                 </button>
               </div>
             </div>
+            {/* ---------------- Remember me checkbox ------------------  */}
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="remember-me"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="mr-2 cursor-pointer accent-accent"
+              />
+              <label
+                htmlFor="remember-me"
+                className="text-sm text-content font-sans font-semibold cursor-pointer"
+              >
+                Remember me
+              </label>
+            </div>
 
+            {/*--------------------- Login Button --------------------- */}
             <button
               type="submit"
               className="bg-logo hover:bg-logo-hover text-white font-poppins font-semibold py-2 rounded-md transition-colors mt-2 cursor-pointer"
@@ -208,9 +233,10 @@ export default function Register({ onClose, initialTab = "login" }) {
           </form>
         )}
 
-        {/* --------------register form--------------- */}
+        {/* ----------------register form---------------- */}
         {activeTab === "register" && (
           <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
+            {/* -------------------------- Username -----------------------  */}
             <div className="flex flex-col gap-1">
               <label
                 htmlFor="register-username"
@@ -230,6 +256,7 @@ export default function Register({ onClose, initialTab = "login" }) {
               />
             </div>
 
+            {/* -------------------------- Email -----------------------  */}
             <div className="flex flex-col gap-1">
               <label
                 htmlFor="register-email"
@@ -249,6 +276,7 @@ export default function Register({ onClose, initialTab = "login" }) {
               />
             </div>
 
+            {/* -------------------------- Password -----------------------  */}
             <div className="flex flex-col gap-1">
               <label
                 htmlFor="register-password"
@@ -282,6 +310,7 @@ export default function Register({ onClose, initialTab = "login" }) {
               </div>
             </div>
 
+            {/* -------------------------- Sign Up Button -----------------------  */}
             <button
               type="submit"
               className="bg-logo hover:bg-logo-hover text-white font-poppins font-semibold py-2 rounded-md transition-colors mt-2 cursor-pointer"
@@ -301,6 +330,8 @@ export default function Register({ onClose, initialTab = "login" }) {
             </p>
           </form>
         )}
+
+        {/* -------------------------- Error Msg -----------------------  */}
         {error && <p className="text-red-500 text-xs text-center">{error}</p>}
       </div>
     </div>

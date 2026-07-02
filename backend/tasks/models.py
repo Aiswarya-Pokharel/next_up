@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 class Task(models.Model):
     priority_choices = [
@@ -6,6 +7,7 @@ class Task(models.Model):
         ('Medium', 'Medium'),
         ('High', 'High'),
     ]
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tasks')
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     priority = models.CharField(max_length=50, choices=priority_choices, default='Medium')             

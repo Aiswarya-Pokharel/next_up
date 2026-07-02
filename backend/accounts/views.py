@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
 from django_ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
@@ -13,7 +14,6 @@ class AccountListCreateView(generics.ListCreateAPIView):
     serializer_class = AccountSerializer
 
     def get_permissions(self):
-        # Only allow anyone to register (POST); list is admin-only
         if self.request.method == 'POST':
             return [permissions.AllowAny()]
         return [permissions.IsAdminUser()]
@@ -27,7 +27,6 @@ class AccountDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Users can only access their own account
         return Account.objects.filter(id=self.request.user.id)
 
 
@@ -37,6 +36,14 @@ class AccountDetailView(generics.RetrieveUpdateDestroyAPIView):
 )
 class AccountLoginView(APIView):
     permission_classes = [permissions.AllowAny]
+
+    def handle_exception(self, exc):
+        if isinstance(exc, Ratelimited):
+            return Response(
+                {"error": "Too many login attempts. Please wait 1 minute and try again."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+        return super().handle_exception(exc)
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -54,6 +61,7 @@ class AccountLoginView(APIView):
 
 class AccountLogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+
     def handle_exception(self, exc):
         if isinstance(exc, Ratelimited):
             return Response(
@@ -61,7 +69,7 @@ class AccountLogoutView(APIView):
                 status=status.HTTP_429_TOO_MANY_REQUESTS
             )
         return super().handle_exception(exc)
-    
+
     def post(self, request):
         try:
             refresh_token = request.data.get("refresh")
@@ -75,3 +83,11 @@ class AccountLogoutView(APIView):
             return Response({"message": "Logout successful."}, status=status.HTTP_200_OK)
         except Exception:
             return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ------------------- me endpoint ---------------------------
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def me(request):
+    serializer = AccountSerializer(request.user)
+    return Response(serializer.data)
