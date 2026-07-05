@@ -7,8 +7,7 @@ from django_ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
 from django_ratelimit.exceptions import Ratelimited
 from .models import Account
-from .serializers import AccountSerializer, LoginSerializer
-
+from .serializers import AccountSerializer, LoginSerializer, ProfileSerializer, ChangePasswordSerializer
 
 class AccountListCreateView(generics.ListCreateAPIView):
     serializer_class = AccountSerializer
@@ -90,4 +89,23 @@ class AccountLogoutView(APIView):
 @permission_classes([permissions.IsAuthenticated])
 def me(request):
     serializer = AccountSerializer(request.user)
-    return Response(serializer.data)
+    return Response(serializer.data)    
+
+
+class ProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = ProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def change_password(request):
+    serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+    if serializer.is_valid():
+        request.user.set_password(serializer.validated_data['new_password'])
+        request.user.save()
+        return Response({"detail": "Password updated successfully."})
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

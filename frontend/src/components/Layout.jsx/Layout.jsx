@@ -9,8 +9,8 @@ export default function Layout() {
       <Navbar />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar — always visible */}
-        <div className="w-64 bg-navbar h-full overflow-y-auto shrink-0">
+        {/* Sidebar — always visible, collapses to icon-rail on small screens */}
+        <div className="w-16 sm:w-20 md:w-64 bg-navbar h-full overflow-y-auto shrink-0 transition-all duration-200">
           <Slide />
         </div>
 
