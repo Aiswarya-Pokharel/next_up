@@ -12,6 +12,7 @@ import TaskList from "./components/tasks/TaskList";
 import Layout from "./components/Layout.jsx/Layout";
 import Notifications from "./components/dashboard/Notifications";
 import Settings from "./components/dashboard/Settings";
+import Habits from "./components/dashboard/Habits";
 
 function SessionWatcher() {
   const navigate = useNavigate();
@@ -40,6 +41,7 @@ export default function App() {
           <Route path="/home/tasks" element={<TaskList />} />
           <Route path="/home/notifications" element={<Notifications />} />
           <Route path="/home/settings" element={<Settings />} />
+          <Route path="/home/habits" element={<Habits />} />
           <Route path="/" element={<Navigate to="/home" replace />} />
         </Route>
       </Routes>

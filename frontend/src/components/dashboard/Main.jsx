@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import Cards from "./Cards";
 import {
   createTask,
@@ -9,6 +10,7 @@ import { FaCalendarAlt, FaMagic, FaSpinner, FaPlus } from "react-icons/fa";
 import { getHabitIcon } from "../../utils/habitIcons";
 
 const choices = ["High", "Medium", "Low"];
+const QUICK_ADD_LIMIT = 8;
 
 const getMinDateTime = () => {
   const tomorrow = new Date();
@@ -49,6 +51,8 @@ export default function Main() {
     };
     loadPresets();
   }, []);
+
+  const quickAddPresets = habitPresets.slice(0, QUICK_ADD_LIMIT);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -146,19 +150,28 @@ export default function Main() {
 
   return (
     <div className="p-4 sm:p-6 flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <h2 className="text-sm font-semibold text-logo dark:text-white font-poppins">
-          Quick add daily habits
-        </h2>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h2 className="text-sm font-semibold text-logo dark:text-white font-poppins">
+            Quick add daily habits
+          </h2>
+          <Link
+            to="/home/habits"
+            className="text-xs sm:text-sm text-accent hover:underline font-medium whitespace-nowrap"
+          >
+            View all habits
+          </Link>
+        </div>
+
         <div className="flex flex-wrap gap-2">
           {presetsLoading ? (
             <p className="text-xs text-gray-400 flex items-center gap-2">
               <FaSpinner className="animate-spin" size={12} /> Loading habits...
             </p>
-          ) : habitPresets.length === 0 ? (
+          ) : quickAddPresets.length === 0 ? (
             <p className="text-xs text-gray-400">No presets available.</p>
           ) : (
-            habitPresets.map((preset) => {
+            quickAddPresets.map((preset) => {
               const Icon = getHabitIcon(preset.category);
               const isLoading = addingHabit === preset.title;
               return (

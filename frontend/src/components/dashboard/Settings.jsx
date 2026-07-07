@@ -83,7 +83,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="flex flex-col bg-secondary dark:bg-gray-900 min-h-full">
+    <div className="flex flex-col bg-secondary dark:bg-black min-h-full">
       <div className="flex justify-between items-center py-3 px-4 sm:px-8 bg-secondary dark:bg-gray-800 shadow-md sticky top-0 z-10 shrink-0">
         <h1 className="font-medium text-xl text-logo dark:text-white font-poppins">
           Settings
