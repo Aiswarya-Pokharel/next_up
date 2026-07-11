@@ -1,5 +1,5 @@
 from rest_framework import generics, permissions
-from .models import Task
+from .models import Task, HabitLog, Notification
 from .serializers import TaskSerializer
 import json
 from datetime import timedelta
@@ -9,6 +9,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from groq import Groq
 from django.conf import settings
+
+
 
 class TaskListCreateView(generics.ListCreateAPIView):
     serializer_class = TaskSerializer
@@ -132,3 +134,76 @@ def task_notifications(request):
         "count": len(notifications),
         "notifications": notifications,
     })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def toggle_habit_completion(request, pk):
+    try:
+        task = Task.objects.get(pk=pk, user=request.user, is_habit=True)
+    except Task.DoesNotExist:
+        return Response({"detail": "Habit not found."}, status=404)
+
+    today = timezone.localdate()
+    log = HabitLog.objects.filter(task=task, scheduled_for=today).first()
+
+    if log:
+        log.delete()
+        completed_today = False
+    else:
+        HabitLog.objects.create(task=task, scheduled_for=today)
+        completed_today = True
+
+    return Response({
+        "id": task.id,
+        "completed_today": completed_today,
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def habit_calendar(request, pk):
+    try:
+        task = Task.objects.get(pk=pk, user=request.user, is_habit=True)
+    except Task.DoesNotExist:
+        return Response({"detail": "Habit not found."}, status=404)
+
+    days = int(request.query_params.get('days', 30))
+    start = timezone.localdate() - timedelta(days=days - 1)
+    logs = HabitLog.objects.filter(
+        task=task, scheduled_for__gte=start
+    ).values_list('scheduled_for', flat=True)
+
+    return Response({
+        "task_id": task.id,
+        "title": task.title,
+        "start_date": start.isoformat(),
+        "completed_dates": [d.isoformat() for d in logs],
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def app_notifications(request):
+    notes = Notification.objects.filter(user=request.user).order_by('-created_at')[:50]
+    return Response([
+        {
+            "id": n.id,
+            "type": n.notification_type,
+            "message": n.message,
+            "is_read": n.is_read,
+            "created_at": n.created_at.isoformat(),
+            "task_id": n.task_id,
+        }
+        for n in notes
+    ])
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def mark_notification_read(request, pk):
+    try:
+        note = Notification.objects.get(pk=pk, user=request.user)
+        note.is_read = True
+        note.save(update_fields=['is_read'])
+        return Response({"id": note.id, "is_read": True})
+    except Notification.DoesNotExist:
+        return Response({"detail": "Notification not found."}, status=404)

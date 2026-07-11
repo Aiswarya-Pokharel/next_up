@@ -125,3 +125,9 @@ export const fetchProfile = () => apiGet("/accounts/me/");
 export const updateProfile = (data) => apiPatch("/accounts/me/", data);
 export const changePassword = (data) =>
   apiPost("/accounts/change-password/", data);
+
+export const fetchHabitCalendar = (taskId, days = 30) =>
+  request(`/tasks/${taskId}/calendar/?days=${days}`);
+
+export const toggleHabitCompletion = (taskId) =>
+  request(`/tasks/${taskId}/toggle-habit/`, { method: "POST" });
