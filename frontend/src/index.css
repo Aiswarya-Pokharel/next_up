@@ -18,9 +18,9 @@
   --color-content: #9ca3af;
   --color-gray: #e5e7eb;
   --color-red: #D22B2B;
+  --color-text: #1f2937;
 }
 
-/* Dark mode overrides */
 .dark {
   --color-primary: #1a1a2e;
   --color-secondary: #0f0f0f;
@@ -37,5 +37,5 @@
 
 body {
   background-color: var(--color-secondary);
-  color: var(--color-white);
+  color: var(--color-text);
 }

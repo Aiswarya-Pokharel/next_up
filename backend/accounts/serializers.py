@@ -47,3 +47,21 @@ class LoginSerializer(serializers.Serializer):
         
         data['account'] = account
         return data
+    
+class ProfileSerializer(serializers.ModelSerializer):
+    """Used for viewing/editing profile info only — password excluded on purpose."""
+    class Meta:
+        model = Account
+        fields = ['id', 'username', 'email']
+        read_only_fields = ['id']
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate_current_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Current password is incorrect.")
+        return value

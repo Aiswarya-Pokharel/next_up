@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FaTimes, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { loginUser, registerUser, saveTokens } from "../../api/api";
 
 const initialLoginState = { email: "", password: "" };
 const initialRegisterState = {
@@ -29,57 +30,31 @@ export default function Register({ onClose, initialTab = "login" }) {
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const res = await fetch("http://localhost:8000/api/accounts/login/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: loginData.email,
-          password: loginData.password,
-        }),
+      const data = await loginUser({
+        email: loginData.email,
+        password: loginData.password,
       });
-
-      const data = await res.json();
-
-      if (res.status === 429) {
-        setError("Too many attempts. Please wait 1 minute.");
-        return;
-      }
-
-      if (res.ok) {
-        if (rememberMe) {
-          // persists after browser close
-          localStorage.setItem("access", data.access);
-          localStorage.setItem("refresh", data.refresh);
-        } else {
-          // clears when browser tab closes
-          sessionStorage.setItem("access", data.access);
-          sessionStorage.setItem("refresh", data.refresh);
-        }
-        onClose();
-        navigate("/home");
-      }
+      saveTokens(data, rememberMe);
+      onClose();
+      navigate("/home");
     } catch (err) {
-      console.error("Network error:", err);
+      if (err.status === 429) {
+        setError("Too many attempts. Please wait 1 minute.");
+      } else {
+        setError(err.detail || "Login failed.");
+      }
     }
   };
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:8000/api/accounts/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(registerData),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        switchTab("login"); // redirect to login after register
-      } else {
-        setError(data.detail || "Registration failed.");
-      }
+      await registerUser(registerData);
+      switchTab("login");
     } catch (err) {
-      console.error("Network error:", err);
+      setError(err.detail || "Registration failed.");
     }
   };
 

@@ -15,13 +15,13 @@ export default function WelcomePage() {
       {/* ---------------nav------------------ */}
       <nav className="flex justify-between items-center py-3 px-5 sm:px-8 bg-navbar shadow-md">
         <div>
-          <h2 className="font-logo font-bold text-lg italic text-secondary cursor-pointer">
+          <h2 className="font-logo font-bold text-lg italic text-secondary dark:text-white cursor-pointer">
             NextUp
           </h2>
         </div>
         <div>
           <button
-            className="bg-secondary px-3 py-1 text-center rounded hover:-translate-y-1 transition-transform font-outfit font-bold cursor-pointer text-sm sm:text-base"
+            className="bg-secondary dark:bg-content dark:text-black px-3 py-1 text-center rounded hover:-translate-y-1 transition-transform font-outfit font-bold cursor-pointer text-sm sm:text-base"
             onClick={() => setIsLoginOpen(true)}
           >
             Log In
