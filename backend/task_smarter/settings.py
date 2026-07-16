@@ -34,7 +34,7 @@ os.environ.setdefault("KAGGLE_KEY", KAGGLE_KEY or "")
 
 SECRET_KEY = 'django-insecure-fx29ff#m=p2cu3r_xu4!+a+&@qz(lay*1j1x$rbeu8qs*u+gdo'
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 AUTH_USER_MODEL = 'accounts.Account'
@@ -106,10 +106,7 @@ WSGI_APPLICATION = 'task_smarter.wsgi.application'
 # }
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-    )
+    'default': dj_database_url.config(conn_max_age=600)
 }
 
 # Password validation
