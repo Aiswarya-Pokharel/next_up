@@ -1,43 +1,51 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { fetchTasks, fetchHabitCalendar } from "../../api/api";
-import { FaSpinner, FaFire } from "react-icons/fa";
+import { FaSpinner, FaFire, FaSyncAlt } from "react-icons/fa";
 import { getHabitIcon } from "../../utils/habitIcons";
 
-const DAYS_TO_SHOW = 30;
+const DAYS_TO_SHOW = 7;
 
 export default function Analytics() {
   const [habits, setHabits] = useState([]);
-  const [calendars, setCalendars] = useState({}); // { taskId: { completed_dates: [...] } }
+  const [calendars, setCalendars] = useState({});
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const load = useCallback(async (isRefresh = false) => {
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+    try {
+      const allTasks = await fetchTasks();
+      const activeHabits = allTasks.filter((t) => t.is_habit);
+      setHabits(activeHabits);
+
+      const calendarResults = await Promise.all(
+        activeHabits.map((h) =>
+          fetchHabitCalendar(h.id, DAYS_TO_SHOW).catch(() => null),
+        ),
+      );
+
+      const calendarMap = {};
+      activeHabits.forEach((h, i) => {
+        if (calendarResults[i]) {
+          calendarMap[h.id] = calendarResults[i];
+        }
+      });
+      setCalendars(calendarMap);
+    } catch (err) {
+      console.error("Failed to load analytics:", err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const allTasks = await fetchTasks();
-        const activeHabits = allTasks.filter((t) => t.is_habit);
-        setHabits(activeHabits);
-
-        const calendarResults = await Promise.all(
-          activeHabits.map((h) =>
-            fetchHabitCalendar(h.id, DAYS_TO_SHOW).catch(() => null),
-          ),
-        );
-
-        const calendarMap = {};
-        activeHabits.forEach((h, i) => {
-          if (calendarResults[i]) {
-            calendarMap[h.id] = calendarResults[i];
-          }
-        });
-        setCalendars(calendarMap);
-      } catch (err) {
-        console.error("Failed to load analytics:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
+    Promise.resolve().then(() => load(false));
+  }, [load]);
 
   const buildCells = (completedDates = []) => {
     const completedSet = new Set(completedDates);
@@ -81,6 +89,15 @@ export default function Analytics() {
         <h1 className="font-medium text-xl text-logo dark:text-white font-poppins">
           Analytics
         </h1>
+        <button
+          onClick={() => load(true)}
+          disabled={refreshing || loading}
+          className="flex items-center gap-2 text-xs font-medium text-accent hover:text-accent/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          title="Refresh analytics"
+        >
+          <FaSyncAlt size={12} className={refreshing ? "animate-spin" : ""} />
+          {refreshing ? "Refreshing..." : "Refresh"}
+        </button>
       </div>
 
       <div className="flex-1 p-6 flex flex-col gap-4">
