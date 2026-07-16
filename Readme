@@ -1,17 +1,6 @@
-<div align="center">
+  # NextUp
 
-# NextUp
-
-**A full-stack task and habit platform that plans your day, nudges your streaks, and reminds you before you forget — not after.**
-
-[![Django REST Framework](https://img.shields.io/badge/backend-Django%20REST%20Framework-0C4B33?style=flat-square&logo=django)](#tech-stack)
-[![React + Vite](https://img.shields.io/badge/frontend-React%20%2B%20Vite-149ECA?style=flat-square&logo=react)](#tech-stack)
-[![PostgreSQL](https://img.shields.io/badge/database-PostgreSQL-336791?style=flat-square&logo=postgresql)](#tech-stack)
-[![Groq AI](https://img.shields.io/badge/AI-Groq-F2A93B?style=flat-square)](#tech-stack)
-[![Docker](https://img.shields.io/badge/infra-Docker%20Compose-2496ED?style=flat-square&logo=docker)](#tech-stack)
-[![License: MIT](https://img.shields.io/badge/license-MIT-8B8D98?style=flat-square)](#license)
-
-</div>
+      **A full-stack task and habit platform that plans your day, nudges your streaks, and reminds you before you forget — not after.**
 
 ## What it does
 
@@ -28,13 +17,12 @@
 
 ## Tech stack
 
-<table>
-<tr><th>Layer</th><th>Tools</th></tr>
-<tr><td><b>Backend</b></td><td>Django · Django REST Framework · SimpleJWT · PostgreSQL</td></tr>
-<tr><td><b>Frontend</b></td><td>React · Vite · Tailwind CSS</td></tr>
-<tr><td><b>AI / Data</b></td><td>Groq API · Kaggle dataset (habit presets)</td></tr>
-<tr><td><b>Infra</b></td><td>Docker Compose · GitHub Actions CI/CD · Gmail SMTP</td></tr>
-</table>
+| Layer         | Tools                                                        |
+| ------------- | ------------------------------------------------------------- |
+| **Backend**   | Django · Django REST Framework · SimpleJWT · PostgreSQL       |
+| **Frontend**  | React · Vite · Tailwind CSS                                    |
+| **AI / Data** | Groq API · Kaggle dataset (habit presets)                      |
+| **Infra**     | Docker Compose · GitHub Actions CI/CD · Gmail SMTP             |
 
 ---
 
@@ -78,21 +66,21 @@ docker compose up --build
 
 **4. Open it**
 
-| Service  | URL                       |
-| -------- | ------------------------- |
-| Frontend | http://localhost:5173     |
-| API      | http://localhost:8000/api |
+| Service  | URL                        |
+| -------- | -------------------------- |
+| Frontend | http://localhost:5173      |
+| API      | http://localhost:8000/api  |
 
 ---
 
 ## Environment variables
 
 | Variable              | Description                                                              |
-| --------------------- | ------------------------------------------------------------------------ |
-| `DATABASE_URL`        | PostgreSQL connection string, e.g. `postgres://user:pass@db:5432/nextup` |
-| `GROQ_API_KEY`        | API key for Groq AI task/habit suggestions                               |
-| `EMAIL_HOST_USER`     | Gmail address used to send reminder emails                               |
-| `EMAIL_HOST_PASSWORD` | Gmail App Password (not your regular password)                           |
+| ---------------------- | ------------------------------------------------------------------------ |
+| `DATABASE_URL`         | PostgreSQL connection string, e.g. `postgres://user:pass@db:5432/nextup` |
+| `GROQ_API_KEY`         | API key for Groq AI task/habit suggestions                               |
+| `EMAIL_HOST_USER`      | Gmail address used to send reminder emails                               |
+| `EMAIL_HOST_PASSWORD`  | Gmail App Password (not your regular password)                           |
 
 ---
 
@@ -109,6 +97,4 @@ docker compose up --build
 
 MIT — see [`LICENSE`](./LICENSE) for details.
 
-<div align="center">
 <sub>Built with Django & React</sub>
-</div>
