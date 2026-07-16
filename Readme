@@ -1,145 +1,114 @@
+<div align="center">
+
 # NextUp
 
-NextUp is a full-stack task management and productivity platform built with Django (DRF) on the backend and React (Vite) + Tailwind CSS on the frontend. It helps users track tasks and habits, get AI-powered nudges, and visualize their progress over time.
+**A full-stack task and habit platform that plans your day, nudges your streaks, and reminds you before you forget — not after.**
 
-## Features
+[![Django REST Framework](https://img.shields.io/badge/backend-Django%20REST%20Framework-0C4B33?style=flat-square&logo=django)](#tech-stack)
+[![React + Vite](https://img.shields.io/badge/frontend-React%20%2B%20Vite-149ECA?style=flat-square&logo=react)](#tech-stack)
+[![PostgreSQL](https://img.shields.io/badge/database-PostgreSQL-336791?style=flat-square&logo=postgresql)](#tech-stack)
+[![Groq AI](https://img.shields.io/badge/AI-Groq-F2A93B?style=flat-square)](#tech-stack)
+[![Docker](https://img.shields.io/badge/infra-Docker%20Compose-2496ED?style=flat-square&logo=docker)](#tech-stack)
+[![License: MIT](https://img.shields.io/badge/license-MIT-8B8D98?style=flat-square)](#license)
 
-- **Task management** — create, organize, and track tasks with deadlines
-- **Habit presets** — pre-built habit templates backed by a Kaggle dataset
-- **AI weekly nudges** — Groq (`llama-3.3-70b-versatile`) powered task suggestions and in-app notifications
-- **Analytics** — habit calendar heatmaps and progress visualizations
-- **Email reminders** — deadline reminder emails via Gmail SMTP
-- **JWT authentication** — SimpleJWT with automatic rotating refresh token handling
+</div>
 
-## Tech Stack
+## What it does
 
-| Layer     | Technology                               |
-| --------- | ---------------------------------------- |
-| Backend   | Django, Django REST Framework, SimpleJWT |
-| Frontend  | React, Vite, Tailwind CSS                |
-| Database  | PostgreSQL                               |
-| AI        | Groq API                                 |
-| Email     | Gmail SMTP                               |
-| Container | Docker, Docker Compose                   |
+|                       |                                                                                                                |
+| --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 🧠 **AI Suggestions** | Groq-powered task planning — describe what's on your plate, get structured, prioritized tasks back in seconds. |
+| ✅ **Habits**         | Presets backed by a real Kaggle habit dataset, so you're never starting from a blank text field.               |
+| 🔔 **Nudges**         | A scheduled command reviews your week and uses AI to write a nudge — only when you actually need one.          |
+| 📧 **Reminders**      | Gmail SMTP delivery via a dedicated management command, so due dates don't slide by quietly.                   |
+| 📊 **Analytics**      | Heatmaps of real progress — see consistency at a glance instead of digging through a task list.                |
+| 🔐 **Sessions**       | Rotating JWT refresh handled centrally, with deduplicated refresh calls so you're never logged out mid-task.   |
 
-## Project Structure
+---
+
+## Tech stack
+
+<table>
+<tr><th>Layer</th><th>Tools</th></tr>
+<tr><td><b>Backend</b></td><td>Django · Django REST Framework · SimpleJWT · PostgreSQL</td></tr>
+<tr><td><b>Frontend</b></td><td>React · Vite · Tailwind CSS</td></tr>
+<tr><td><b>AI / Data</b></td><td>Groq API · Kaggle dataset (habit presets)</td></tr>
+<tr><td><b>Infra</b></td><td>Docker Compose · GitHub Actions CI/CD · Gmail SMTP</td></tr>
+</table>
+
+---
+
+## Architecture
 
 ```
-next_up/
-├── backend/
-│   ├── manage.py
-│   ├── requirements.txt
-│   ├── .env.example
-│   ├── Dockerfile
-│   └── ...
-├── frontend/
-│   ├── package.json
-│   ├── Dockerfile
-│   ├── Dockerfile.prod
-│   ├── nginx.conf
-│   └── src/
-├── docker-compose.yml
-└── README.md
+React / Vite  →  DRF + JWT  →  PostgreSQL  →  Reminders · Nudges
+   (client)         (API)         (data)          (jobs)
 ```
 
-> If your actual folder names differ from `backend/` and `frontend/`, update the `context:` paths in `docker-compose.yml` to match.
+<details>
+<summary><b>More on the moving parts</b></summary>
+<br>
 
-## Getting Started (Docker — recommended)
+- **Client** — React/Vite frontend with a centralized `api.js` request wrapper, automatic token refresh, and a `SessionWatcher` for session-expired redirects.
+- **API** — Django REST Framework, JWT auth via SimpleJWT, Groq integration for task/habit suggestions.
+- **Data** — PostgreSQL, with models for tasks, habits, and notifications.
+- **Jobs** — `send_reminders` (Gmail SMTP) and `check_habit_consistency` (Groq-based weekly nudges), both run as Django management commands.
 
-**Prerequisites:** Docker and Docker Compose installed.
+</details>
 
-1. Copy the example env file and fill in your real values:
+---
 
-   ```bash
-   cp backend/.env.example backend/.env
-   ```
+## Getting started
 
-   Set `SECRET_KEY`, `GROQ_API_KEY`, and the `EMAIL_*` variables at minimum.
-
-2. Build and start everything (Postgres, backend, frontend):
-
-   ```bash
-   docker compose up --build
-   ```
-
-3. Once it's up:
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:8000
-   - Postgres: localhost:5432 (accessible for a GUI client like pgAdmin/TablePlus if needed)
-
-   Migrations run automatically on backend startup. To create an admin user:
-
-   ```bash
-   docker compose exec backend python manage.py createsuperuser
-   ```
-
-4. Stop everything:
-   ```bash
-   docker compose down
-   ```
-   Add `-v` to also wipe the Postgres volume (deletes all data).
-
-### Useful Docker commands
+**1. Clone and configure**
 
 ```bash
-# Rebuild a single service after changing its Dockerfile or dependencies
-docker compose build backend
-
-# Tail logs
-docker compose logs -f backend
-
-# Run a management command
-docker compose exec backend python manage.py <command>
-
-# Open a shell inside the frontend container
-docker compose exec frontend sh
+git clone https://github.com/your-username/nextup.git
+cd nextup
+cp .env.example .env
 ```
 
-## Getting Started (without Docker)
+**2. Set your secrets** — see [environment variables](#environment-variables) below.
 
-**Backend:**
+**3. Run the stack**
 
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate 
-pip install -r requirements.txt
-cp .env.example .env      
-python manage.py migrate
-python manage.py runserver
+docker compose up --build
 ```
 
-**Frontend:**
+**4. Open it**
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+| Service  | URL                       |
+| -------- | ------------------------- |
+| Frontend | http://localhost:5173     |
+| API      | http://localhost:8000/api |
 
-## Environment Variables
+---
 
-See `backend/.env.example` for the full list. Key ones:
+## Environment variables
 
-| Variable                                                                                                                     | Description                                    |
-| ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `SECRET_KEY`                                                                                                                 | Django secret key                              |
-| `DEBUG`                                                                                                                      | `True` for local dev, `False` in production    |
-| `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`                                                                    | PostgreSQL connection                          |
-| `GROQ_API_KEY`                                                                                                               | Groq API key for AI-powered nudges/suggestions |
-| `EMAIL_BACKEND`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USE_TLS`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL` | Gmail SMTP config for deadline reminder emails |
+| Variable              | Description                                                              |
+| --------------------- | ------------------------------------------------------------------------ |
+| `DATABASE_URL`        | PostgreSQL connection string, e.g. `postgres://user:pass@db:5432/nextup` |
+| `GROQ_API_KEY`        | API key for Groq AI task/habit suggestions                               |
+| `EMAIL_HOST_USER`     | Gmail address used to send reminder emails                               |
+| `EMAIL_HOST_PASSWORD` | Gmail App Password (not your regular password)                           |
 
-## Production Notes
+---
 
-- Swap the backend's dev server for `gunicorn` in production:
-  ```dockerfile
-  CMD ["gunicorn", "nextup.wsgi:application", "--bind", "0.0.0.0:8000"]
-  ```
-  (replace `nextup.wsgi` with your actual project's WSGI module path)
-- Build the frontend with `frontend/Dockerfile.prod`, which compiles the Vite app and serves it via nginx with API requests proxied to the backend.
-- Set `DEBUG=False` and configure `ALLOWED_HOSTS` properly.
-- Use strong, unique values for `SECRET_KEY` and database credentials — never commit `.env` files.
+## Roadmap
+
+- [x] Dockerize the main app and the companion reminder API
+- [x] CI pipeline via GitHub Actions
+- [ ] Multi-project Compose stack running cleanly side by side
+- [ ] Push notifications alongside email reminders
+
+---
 
 ## License
 
-Add your license here.
+MIT — see [`LICENSE`](./LICENSE) for details.
+
+<div align="center">
+<sub>Built with Django & React</sub>
+</div>
