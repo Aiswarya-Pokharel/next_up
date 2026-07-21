@@ -1,6 +1,6 @@
 from rest_framework import generics, permissions
 from .models import Task, HabitLog, Notification
-from .serializers import TaskSerializer
+from .serializers import HabitNudgeSerializer,TaskSerializer
 import json
 from datetime import timedelta
 from django.utils import timezone
@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from groq import Groq
 from django.conf import settings
+from rest_framework.views import APIView
 
 
 
@@ -207,3 +208,25 @@ def mark_notification_read(request, pk):
         return Response({"id": note.id, "is_read": True})
     except Notification.DoesNotExist:
         return Response({"detail": "Notification not found."}, status=404)
+    
+
+class LatestHabitNudgeView(APIView):
+    """
+    Returns the most recent habit_nudge Notification for a given task,
+    scoped to the requesting user so nobody can peek at another user's nudges.
+    """
+    def get(self, request, task_id):
+        task = Task.objects.filter(id=task_id, user=request.user).first()
+        if not task:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        nudge = (
+            Notification.objects
+            .filter(task=task, notification_type='habit_nudge')
+            .order_by('-created_at')
+            .first()
+        )
+        if not nudge:
+            return Response(None, status=status.HTTP_200_OK)
+
+        return Response(HabitNudgeSerializer(nudge).data)

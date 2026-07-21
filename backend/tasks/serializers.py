@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from pytz import timezone
 from rest_framework import serializers
-from .models import Task
+from .models import Task, Notification
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,3 +24,8 @@ class TaskSerializer(serializers.ModelSerializer):
             if due_date < tomorrow_start:
                 raise serializers.ValidationError({"due_date": "Deadline must be tomorrow or later."})
         return data
+    
+class HabitNudgeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['id', 'message', 'created_at', 'is_read']

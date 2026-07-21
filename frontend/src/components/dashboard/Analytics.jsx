@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchTasks, fetchHabitCalendar } from "../../api/api";
-import { FaSpinner, FaFire, FaSyncAlt } from "react-icons/fa";
+import {
+  fetchTasks,
+  fetchHabitCalendar,
+  fetchHabitNudge,
+  toggleHabitCompletion,
+} from "../../api/api";
+import { FaSpinner, FaFire, FaSyncAlt, FaCheck } from "react-icons/fa";
 import { getHabitIcon } from "../../utils/habitIcons";
 
 const DAYS_TO_SHOW = 7;
@@ -8,8 +13,10 @@ const DAYS_TO_SHOW = 7;
 export default function Analytics() {
   const [habits, setHabits] = useState([]);
   const [calendars, setCalendars] = useState({});
+  const [nudges, setNudges] = useState({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [togglingId, setTogglingId] = useState(null);
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) {
@@ -22,19 +29,29 @@ export default function Analytics() {
       const activeHabits = allTasks.filter((t) => t.is_habit);
       setHabits(activeHabits);
 
-      const calendarResults = await Promise.all(
-        activeHabits.map((h) =>
-          fetchHabitCalendar(h.id, DAYS_TO_SHOW).catch(() => null),
+      const [calendarResults, nudgeResults] = await Promise.all([
+        Promise.all(
+          activeHabits.map((h) =>
+            fetchHabitCalendar(h.id, DAYS_TO_SHOW).catch(() => null),
+          ),
         ),
-      );
+        Promise.all(
+          activeHabits.map((h) => fetchHabitNudge(h.id).catch(() => null)),
+        ),
+      ]);
 
       const calendarMap = {};
+      const nudgeMap = {};
       activeHabits.forEach((h, i) => {
         if (calendarResults[i]) {
           calendarMap[h.id] = calendarResults[i];
         }
+        if (nudgeResults[i]) {
+          nudgeMap[h.id] = nudgeResults[i];
+        }
       });
       setCalendars(calendarMap);
+      setNudges(nudgeMap);
     } catch (err) {
       console.error("Failed to load analytics:", err);
     } finally {
@@ -46,6 +63,25 @@ export default function Analytics() {
   useEffect(() => {
     Promise.resolve().then(() => load(false));
   }, [load]);
+
+  const handleToggle = async (taskId) => {
+    setTogglingId(taskId);
+    try {
+      await toggleHabitCompletion(taskId);
+      // Re-fetch this habit's calendar so streak/heatmap reflect the change immediately
+      const updatedCalendar = await fetchHabitCalendar(
+        taskId,
+        DAYS_TO_SHOW,
+      ).catch(() => null);
+      if (updatedCalendar) {
+        setCalendars((prev) => ({ ...prev, [taskId]: updatedCalendar }));
+      }
+    } catch (err) {
+      console.error("Failed to toggle habit:", err);
+    } finally {
+      setTogglingId(null);
+    }
+  };
 
   const buildCells = (completedDates = []) => {
     const completedSet = new Set(completedDates);
@@ -119,6 +155,10 @@ export default function Analytics() {
             const streak = calcStreak(completedDates);
             const rate = calcRate(completedDates);
             const Icon = getHabitIcon(habit.category);
+            const nudge = nudges[habit.id];
+            const todayIso = new Date().toISOString().slice(0, 10);
+            const todayDone = completedDates.includes(todayIso);
+            const isToggling = togglingId === habit.id;
 
             return (
               <div
@@ -134,6 +174,27 @@ export default function Analytics() {
                   </div>
 
                   <div className="flex items-center gap-4 text-xs">
+                    <button
+                      onClick={() => handleToggle(habit.id)}
+                      disabled={isToggling}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                        todayDone
+                          ? "bg-accent text-white hover:bg-accent/90"
+                          : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                      }`}
+                      title={
+                        todayDone
+                          ? "Mark as not done today"
+                          : "Mark as done today"
+                      }
+                    >
+                      <FaCheck size={10} />
+                      {isToggling
+                        ? "..."
+                        : todayDone
+                          ? "Done today"
+                          : "Mark done"}
+                    </button>
                     <span className="flex items-center gap-1 text-accent font-medium">
                       <FaFire size={12} />
                       {streak} day{streak !== 1 ? "s" : ""} streak
@@ -156,6 +217,13 @@ export default function Analytics() {
                     />
                   ))}
                 </div>
+
+                {/* AI habit nudge */}
+                {nudge && (
+                  <p className="text-xs text-accent/90 italic border-t border-border dark:border-gray-700 pt-2 mt-1">
+                    💡 {nudge.message}
+                  </p>
+                )}
               </div>
             );
           })

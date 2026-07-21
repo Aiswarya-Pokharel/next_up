@@ -131,5 +131,8 @@ export const changePassword = (data) =>
 export const fetchHabitCalendar = (taskId, days = 30) =>
   request(`/tasks/${taskId}/calendar/?days=${days}`);
 
+export const fetchHabitNudge = (taskId) =>
+  apiGet(`/tasks/${taskId}/latest-nudge/`);
+
 export const toggleHabitCompletion = (taskId) =>
   request(`/tasks/${taskId}/toggle-habit/`, { method: "POST" });
