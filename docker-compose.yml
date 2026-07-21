@@ -22,7 +22,7 @@ services:
     environment:
       DB_HOST: db
       DB_PORT: 5432
-      DATABASE_URL: {DB_URL}
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}"
     ports:
       - "8000:8000"
     depends_on:
